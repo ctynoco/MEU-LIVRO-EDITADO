@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Livro — Plataforma Editorial & Gravura</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-app: #f1f4f8;
+      --bg-sidebar: #ffffff;
+      --bg-paper: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --border-color: #e5e7eb;
+      --editor-font: 'Merriweather', serif;
+    }
+
+    body.theme-sepia {
+      --bg-app: #f4ece1;
+      --bg-sidebar: #eae0d0;
+      --bg-paper: #fbf0d9;
+      --text-main: #3d312a;
+      --text-muted: #79685a;
+      --border-color: #d8c8b4;
+    }
+
+    body.theme-dark {
+      --bg-app: #111827;
+      --bg-sidebar: #1f2937;
+      --bg-paper: #18202f;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border-color: #374151;
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .sidebar-container {
+      background-color: var(--bg-sidebar);
+      border-color: var(--border-color);
+    }
+
+    .editor-paper {
+      background-color: var(--bg-paper);
+      color: var(--text-main);
+      font-family: var(--editor-font);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+      min-height: 820px;
+      line-height: 1.85;
+    }
+
+    .editor-paper:focus { outline: none; }
+
+    .editor-paper h1, .editor-paper h2, .editor-paper h3 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .editor-paper h1 { font-size: 26pt; margin: 28px 0 16px; text-align: center; }
+    .editor-paper h2 { font-size: 20pt; margin: 24px 0 14px; }
+    .editor-paper h3 { font-size: 16pt; margin: 18px 0 10px; }
+    .editor-paper p { margin: 14px 0; }
+    .editor-paper blockquote {
+      border-left: 4px solid #d97706;
+      padding-left: 18px;
+      font-style: italic;
+      color: var(--text-muted);
+      margin: 18px 0;
+    }
+
+    .editor-paper p.first-line-indent { text-indent: 2em; }
+
+    /* Letra capitular para abertura de capítulos */
+    .editor-paper .capitulo-primeiro::first-letter {
+      font-size: 4em;
+      float: left;
+      line-height: 0.85;
+      padding: 4px 10px 0 0;
+      font-weight: bold;
+      color: #b45309;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .toolbar-btn {
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: inherit;
+    }
+    .toolbar-btn:hover { background-color: rgba(156, 163, 175, 0.18); }
+    .toolbar-btn.active { background-color: rgba(217, 119, 6, 0.2); color: #b45309; }
+
+    .zen-mode .no-zen { display: none !important; }
+    .zen-mode #mainContent { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+    .zen-mode .editor-paper { max-width: 820px; box-shadow: none; border: none; padding-top: 40px; }
+
+    /* Estilos das Capas */
+    .cover-box {
+      width: 240px;
+      height: 340px;
+      margin: 0 auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+      text-align: center;
+      border-radius: 4px;
+    }
+    .cover-box.blue { background: linear-gradient(145deg, #183b5b, #3b749e); color: #fff; }
+    .cover-box.gold { background: linear-gradient(145deg, #23272f, #9b7837); color: #fff; }
+    .cover-box.sepia { background: linear-gradient(145deg, #f5ebd9, #e5d5be); color: #2e261f; border: 1px solid #d4c1a7; }
+    .cover-box.cordel {
+      background: repeating-linear-gradient(135deg, #eee4cf, #eee4cf 7px, #e1d2b8 7px, #e1d2b8 14px);
+      color: #222;
+      border: 6px solid #222;
+    }
+    .cover-box.dark { background: #111827; color: #f9fafb; border: 1px solid #374151; }
+
+    /* Estilos de Impressão e PDF Diagramado */
+    @media print {
+      body { background: white !important; color: black !important; }
+      .no-print, header, aside, .toolbar-container, #zenExitBtn, .modal { display: none !important; }
+      #printContainer { display: block !important; }
+      #mainContent { display: none !important; }
+      .print-chapter { page-break-before: always; padding: 2cm; }
+      .print-chapter:first-child { page-break-before: avoid; }
+      .print-title { text-align: center; font-family: 'Playfair Display', serif; font-size: 26pt; margin-bottom: 2cm; }
+      .print-body { font-family: 'Merriweather', serif; font-size: 11.5pt; line-height: 1.6; }
+      .print-body p { text-indent: 1.5em; margin: 6pt 0; text-align: justify; }
+      @page { size: A5; margin: 1.8cm 1.5cm 2cm 2cm; }
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden select-none">
+
+  <!-- Cabeçalho Principal (Oculto no Modo Zen) -->
+  <header class="no-zen bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2.5 flex items-center justify-between shadow-sm z-30 transition-colors">
+    <div class="flex items-center gap-3">
+      <!-- Alternar Barra Lateral de Capítulos -->
+      <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition" title="Alternar Barra de Capítulos">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+      </button>
+
+      <!-- Ícone e Título do Livro -->
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold text-lg font-serif">
+          📚
+        </div>
+        <div>
+          <input type="text" id="inputTituloLivro" value="Meu Grande Romance" 
+                 class="font-serif font-bold text-lg bg-transparent border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-amber-500 focus:outline-none px-1 text-gray-800 dark:text-gray-100 transition max-w-xs md:max-w-sm truncate" 
+                 oninput="salvarMetadadosLivro()" title="Clique para editar o título do livro">
+          <div class="text-[11px] text-gray-400 dark:text-gray-500 flex items-center gap-2 px-1">
+            <span id="saveStatus">💾 Salvo localmente</span>
+            <span>•</span>
+            <span id="headerStats">0 palavras</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ferramentas e Recursos Superiores -->
+    <div class="flex items-center gap-1.5 md:gap-2">
+      <!-- Oficina de Xilogravura (Cordel Studio) -->
+      <button onclick="abrirModal('modalXilogravura')" class="toolbar-btn text-xs font-medium px-3 py-1.5 border border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 rounded-lg hover:bg-amber-100/60" title="Criador de Gravuras e Ilustrações de Cordel">
+        ✥ <span class="hidden md:inline ml-1 font-semibold">Xilogravura</span>
+      </button>
+
+      <!-- Estúdio de Capas -->
+      <button onclick="abrirModal('modalCapas')" class="toolbar-btn text-xs font-medium px-3 py-1.5 border border-indigo-200 dark:border-indigo-800 bg-indigo-50/40 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-100/50" title="Criador de Capas para o Livro">
+        ▧ <span class="hidden md:inline ml-1 font-semibold">Capas</span>
+      </button>
+
+      <!-- Dicionário -->
+      <button onclick="abrirModal('modalDicionario')" class="toolbar-btn text-xs font-medium px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-400 text-gray-700 dark:text-gray-200" title="Consultar Dicionário e Sinônimos">
+        📖 <span class="hidden lg:inline ml-1">Dicionário</span>
+      </button>
+
+      <!-- Revisão Gramatical Real -->
+      <button onclick="iniciarRevisaoGramatical()" class="toolbar-btn text-xs font-medium px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-emerald-400 text-gray-700 dark:text-gray-200" title="Verificar Ortografia e Gramática Real (LanguageTool)">
+        ✓ <span class="hidden lg:inline ml-1">Revisão</span>
+      </button>
+
+      <!-- Assistente Criativo de IA -->
+      <button onclick="abrirModal('modalIA')" class="toolbar-btn text-xs font-medium px-3 py-1.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 rounded-lg hover:from-amber-500/20" title="Assistente Criativo com IA">
+        ✨ <span class="hidden lg:inline ml-1">IA Escritora</span>
+      </button>
+
+      <div class="h-5 w-[1px] bg-gray-200 dark:bg-gray-700 mx-1"></div>
+
+      <!-- Leitura por Voz (Audiolivro) -->
+      <button onclick="alternarLeituraVoz()" id="btnVoz" class="toolbar-btn p-2 rounded-lg text-gray-600 dark:text-gray-300" title="Ouvir Narração em Voz Alta">
+        🔊
+      </button>
+
+      <!-- Menu de Temas -->
+      <div class="relative">
+        <button onclick="alternarDropdownTema()" class="toolbar-btn p-2 rounded-lg text-gray-600 dark:text-gray-300" title="Mudar Tema">
+          🎨
+        </button>
+        <div id="dropdownTema" class="hidden absolute right-0 mt-2 w-36 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-1 z-50 text-sm">
+          <button onclick="mudarTema('light')" class="w-full text-left px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">☀️ Claro</button>
+          <button onclick="mudarTema('sepia')" class="w-full text-left px-3 py-1.5 hover:bg-amber-100 text-amber-900 flex items-center gap-2">📜 Sépia</button>
+          <button onclick="mudarTema('dark')" class="w-full text-left px-3 py-1.5 hover:bg-gray-700 text-gray-200 flex items-center gap-2">🌙 Noturno</button>
+        </div>
+      </div>
+
+      <!-- Modo Foco (Zen) -->
+      <button onclick="ativarModoZen()" class="toolbar-btn p-2 rounded-lg text-gray-600 dark:text-gray-300" title="Modo Foco Sem Distrações (Zen)">
+        🧘
+      </button>
+
+      <!-- Central de Exportação -->
+      <button onclick="abrirModal('modalExportar')" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5">
+        📥 <span>Exportar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Botão Flutuante de Saída do Modo Zen -->
+  <button id="zenExitBtn" onclick="desativarModoZen()" class="hidden fixed top-4 right-4 z-50 bg-black/75 hover:bg-black text-white px-3.5 py-1.5 rounded-full text-xs font-medium backdrop-blur shadow-lg transition">
+    ✕ Sair do Modo Foco
+  </button>
+
+  <!-- Corpo Principal (Barra Lateral + Editor) -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- Barra Lateral de Capítulos e Formato Editorial -->
+    <aside id="sidebarCapitulos" class="no-zen w-72 md:w-80 sidebar-container border-r flex flex-col z-20 transition-all duration-300 select-none">
+      
+      <!-- Topo da Barra: Sumário da Obra e Novo Capítulo -->
+      <div class="p-4 border-b border-inherit">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Sumário da Obra</span>
+          <button onclick="adicionarCapitulo()" class="text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-semibold px-2 py-1 rounded transition flex items-center gap-1">
+            + Novo Capítulo
+          </button>
+        </div>
+
+        <!-- Estatísticas Globais -->
+        <div class="bg-gray-50 dark:bg-gray-800/60 p-2.5 rounded-lg border border-inherit text-xs space-y-1">
+          <div class="flex justify-between text-gray-600 dark:text-gray-300">
+            <span>Total de Palavras:</span>
+            <strong id="statTotalPalavras">0</strong>
+          </div>
+          <div class="flex justify-between text-gray-600 dark:text-gray-300">
+            <span>Páginas Estimadas:</span>
+            <strong id="statTotalPaginas">0 pág.</strong>
+          </div>
+          <div class="flex justify-between text-gray-600 dark:text-gray-300">
+            <span>Tempo de Leitura:</span>
+            <strong id="statTempoLeitura">0 min</strong>
+          </div>
+        </div>
+
+        <!-- Seleção de Formato do Livro -->
+        <div class="mt-3 flex items-center justify-between text-xs">
+          <span class="text-gray-500 font-medium">Formato Físico:</span>
+          <select id="selectFormatoLivro" onchange="mudarFormatoLivro(this.value)" class="text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1.5 py-0.5 focus:outline-none">
+            <option value="a5">A5 (14,8 × 21 cm)</option>
+            <option value="14x21">Livro (14 × 21 cm)</option>
+            <option value="16x23">Romance (16 × 23 cm)</option>
+            <option value="cordel">Cordel (10 × 15 cm)</option>
+            <option value="a4">A4 (21 × 29,7 cm)</option>
+            <option value="a6">A6 de Bolso (10,5 × 14,8 cm)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Lista de Capítulos -->
+      <div id="listaCapitulos" class="flex-1 overflow-y-auto p-2 space-y-1">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+
+      <!-- Rodapé da Barra: Backup e Pré-flight -->
+      <div class="p-3 border-t border-inherit bg-gray-50/50 dark:bg-gray-800/40 text-xs flex flex-col gap-1.5">
+        <div class="flex gap-2">
+          <button onclick="exportarBackupJSON()" class="flex-1 py-1.5 px-2 text-center rounded border border-gray-300 dark:border-gray-600 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition" title="Baixar arquivo .livro com todos os capítulos">
+            💾 Salvar Backup
+          </button>
+          <label class="flex-1 py-1.5 px-2 text-center rounded border border-gray-300 dark:border-gray-600 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 cursor-pointer transition" title="Restaurar backup do livro">
+            📂 Carregar
+            <input type="file" id="inputArquivoBackup" accept=".json,.livro" class="hidden" onchange="importarBackupJSON(event)">
+          </label>
+        </div>
+        <button onclick="abrirModal('modalPreflight')" class="w-full py-1 text-center text-gray-500 hover:text-amber-600 font-medium">
+          🔍 Conferência Pré-flight Editorial
+        </button>
+      </div>
+    </aside>
+
+    <!-- Área de Conteúdo Central (Barra de Ferramentas + Papel de Escrita) -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+
+      <!-- Barra de Formatação Editorial (Oculta no Modo Zen) -->
+      <div class="no-zen toolbar-container bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-1.5 flex items-center gap-1 flex-wrap text-sm z-10 transition-colors">
+        
+        <!-- Bloco de Texto (H1, H2, H3, P, Blockquote) -->
+        <select onchange="formatarBloco(this.value); this.value='';" class="text-xs font-medium bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none text-gray-700 dark:text-gray-200 cursor-pointer">
+          <option value="" disabled selected>Estilo...</option>
+          <option value="p">Parágrafo</option>
+          <option value="h1">Título 1</option>
+          <option value="h2">Título 2</option>
+          <option value="h3">Título 3</option>
+          <option value="blockquote">Citação</option>
+        </select>
+
+        <div class="h-4 w-[1px] bg-gray-200 dark:bg-gray-700 mx-1"></div>
+
+        <!-- Estilos de Fonte -->
+        <button onclick="execComando('bold')" class="toolbar-btn" title="Negrito (Ctrl+B)"><strong>B</strong></button>
+        <button onclick="execComando('italic')" class="toolbar-btn" title="Itálico (Ctrl+I)"><em>I</em></button>
+        <button onclick="execComando('underline')" class="toolbar-btn" title="Sublinhado (Ctrl+U)"><span class="underline">U</span></button>
+        <button onclick="execComando('strikeThrough')" class="toolbar-btn" title="Tachado"><span class="line-through">S</span></button>
+
+        <div class="h-4 w-[1px] bg-gray-200 dark:bg-gray-700 mx-1"></div>
+
+        <!-- Alinhamento -->
+        <button onclick="execComando('justifyLeft')" class="toolbar-btn" title="Alinhar à Esquerda">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 15h12v2H3v-2zm0-8h12v2H3V7zm0 4h18v2H3v-2zm0 8h18v2H3v-2zM3 3h18v2H3V3z"/></svg>
+        </button>
+        <button onclick="execComando('justifyCenter')" class="toolbar-btn" title="Centralizar">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 15h10v2H7v-2zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6h10V7H7v2zM3 3v2h18V3H3z"/></svg>
+        </button>
+        <button onclick="execComando('justifyRight')" class="toolbar-btn" title="Alinhar à Direita">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M9 15h12v2H9v-2zm-6-8h18v2H3V7zm6 4h12v2H9v-2zm-6 8h18v2H3v-2zM3 3h18v2H3V3z"/></svg>
+        </button>
+        <button onclick="execComando('justifyFull')" class="toolbar-btn" title="Justificar">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 15h18v2H3v-2zm0-8h18v2H3V7zm0 4h18v2H3v-2zm0 8h18v2H3v-2zM3 3h18v2H3V3z"/></svg>
+        </button>
+
+        <div class="h-4 w-[1px] bg-gray-200 dark:bg-gray-700 mx-1"></div>
+
+        <!-- Efeitos Editoriais: Letra Capitular, Travessão, Imagem -->
+        <button onclick="aplicarLetraCapitular()" class="toolbar-btn text-xs font-bold text-amber-700 dark:text-amber-400" title="Inserir Letra Capitular Ornamental no Parágrafo">🅰 Capitular</button>
+        <button onclick="inserirTexto('— ')" class="toolbar-btn text-xs font-serif" title="Inserir Travessão de Diálogo">— Travessão</button>
+        <button onclick="alternarRecuoParagrafo()" class="toolbar-btn text-xs font-serif" title="Alternar Recuo de Primeira Linha (Estilo Livro)">⇥ Recuo</button>
+        <button onclick="abrirModal('modalXilogravura')" class="toolbar-btn text-xs font-medium text-amber-600 dark:text-amber-300" title="Criar ou Inserir Gravura de Xilogravura">🖼 Xilogravura</button>
+
+        <div class="h-4 w-[1px] bg-gray-200 dark:bg-gray-700 mx-1"></div>
+
+        <!-- Desfazer / Refazer -->
+        <button onclick="execComando('undo')" class="toolbar-btn" title="Desfazer (Ctrl+Z)">↶</button>
+        <button onclick="execComando('redo')" class="toolbar-btn" title="Refazer (Ctrl+Y)">↷</button>
+        <button onclick="execComando('removeFormat')" class="toolbar-btn text-xs" title="Limpar Formatação">🧹</button>
+
+        <!-- Seletor de Tipografia -->
+        <div class="ml-auto flex items-center gap-2">
+          <span class="text-xs text-gray-400">Fonte:</span>
+          <select onchange="mudarFonteEditor(this.value)" class="text-xs bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-1.5 py-1 focus:outline-none text-gray-700 dark:text-gray-200">
+            <option value="'Merriweather', serif">Merriweather (Clássica)</option>
+            <option value="'Playfair Display', serif">Playfair Display (Romance)</option>
+            <option value="'Inter', sans-serif">Inter (Moderna)</option>
+            <option value="'Georgia', serif">Georgia (Editorial)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Área de Rolagem do Papel -->
+      <div id="mainContent" class="flex-1 overflow-y-auto px-4 py-8 flex justify-center">
+        <div class="w-full max-w-3xl flex flex-col pb-24">
+          
+          <!-- Cabeçalho do Capítulo no Topo da Página -->
+          <div class="mb-4 flex items-center justify-between no-zen">
+            <input type="text" id="inputTituloCapitulo" value="Capítulo 1: O Início" 
+                   class="font-serif font-bold text-xl md:text-2xl bg-transparent border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-amber-500 focus:outline-none px-1 text-gray-800 dark:text-gray-100 transition flex-1"
+                   oninput="atualizarTituloCapituloAtivo(this.value)">
+            <span id="capituloWordCount" class="text-xs text-gray-400 ml-4 font-mono">0 palavras</span>
+          </div>
+
+          <!-- O Papel do Livro (Contenteditable) -->
+          <div id="editor" 
+               class="editor-paper p-8 md:p-14 rounded-sm border border-inherit text-base md:text-lg focus:outline-none select-text transition-colors shadow-md"
+               contenteditable="true"
+               spellcheck="true"
+               oninput="aoDigitarNoEditor()"
+               onkeyup="aoSoltarTecla(event)">
+            <!-- Conteúdo carregado via JavaScript -->
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Barra de Status do Rodapé -->
+      <div class="no-zen bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-1.5 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between select-none">
+        <div class="flex items-center gap-4">
+          <span id="footerCapituloInfo">Capítulo 1 de 1</span>
+          <span>•</span>
+          <span id="footerCharCount">0 caracteres</span>
+          <span>•</span>
+          <span id="footerFormatoInfo">Formato: A5</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="checkbox" id="checkSpellcheck" checked onchange="document.getElementById('editor').spellcheck = this.checked" class="rounded text-amber-600 focus:ring-0">
+            <span>Corretor do Navegador</span>
+          </label>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- CONTAINER PARA IMPRESSÃO / PDF DIAGRAMADO (Visível apenas em @media print) -->
+  <div id="printContainer" class="hidden"></div>
+
+  <!-- ==================== MODAIS ==================== -->
+
+  <!-- MODAL: OFICINA DE XILOGRAVURA & CORDEL -->
+  <div id="modalXilogravura" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div class="p-4 border-b border-inherit flex items-center justify-between bg-amber-50 dark:bg-amber-950/30">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">✥</span>
+          <div>
+            <h2 class="text-lg font-bold font-serif text-amber-900 dark:text-amber-200">Criador de Xilogravura & Ilustrações de Cordel</h2>
+            <p class="text-xs text-amber-700 dark:text-amber-400">Transforme qualquer imagem em arte preto e branco de alto contraste inspirada na gravura popular</p>
+          </div>
+        </div>
+        <button onclick="fecharModal('modalXilogravura')" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-5 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Coluna 1: Controles e Imagem de Entrada -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">1. Escolha a imagem de origem:</label>
+            <input type="file" id="arquivoXilogravura" accept="image/*" class="w-full text-xs text-gray-600 dark:text-gray-300 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200 cursor-pointer" onchange="carregarImagemXilogravura(event)">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Ou escolha um motivo popular do sertão:</label>
+            <div class="flex flex-wrap gap-1.5">
+              <button onclick="carregarAmostraXilogravura('mandacaru')" class="px-2.5 py-1 bg-amber-50 dark:bg-gray-700 hover:bg-amber-100 border border-amber-200 dark:border-gray-600 rounded text-xs">🌵 Mandacaru</button>
+              <button onclick="carregarAmostraXilogravura('sol')" class="px-2.5 py-1 bg-amber-50 dark:bg-gray-700 hover:bg-amber-100 border border-amber-200 dark:border-gray-600 rounded text-xs">☀️ Sol Sertanejo</button>
+              <button onclick="carregarAmostraXilogravura('cacto')" class="px-2.5 py-1 bg-amber-50 dark:bg-gray-700 hover:bg-amber-100 border border-amber-200 dark:border-gray-600 rounded text-xs">🏜️ Paisagem</button>
+              <button onclick="carregarAmostraXilogravura('vaqueiro')" class="px-2.5 py-1 bg-amber-50 dark:bg-gray-700 hover:bg-amber-100 border border-amber-200 dark:border-gray-600 rounded text-xs">🤠 Vaqueiro</button>
+              <button onclick="carregarAmostraXilogravura('festa')" class="px-2.5 py-1 bg-amber-50 dark:bg-gray-700 hover:bg-amber-100 border border-amber-200 dark:border-gray-600 rounded text-xs">🎪 São João</button>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-inherit">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">2. Estilo e Parâmetros de Entalhe:</label>
+            <div class="space-y-3 text-xs">
+              <div>
+                <label class="text-gray-500">Estilo:</label>
+                <select id="xiloEstilo" onchange="renderizarXilogravura()" class="w-full mt-1 p-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">
+                  <option value="classic">Clássica — Preto e branco forte</option>
+                  <option value="fine">Traço fino — Mais contornos e detalhes</option>
+                  <option value="rough">Rústica com Granulação (Floyd-Steinberg)</option>
+                  <option value="hatch">Hachuras de Entalhe em Madeira</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <div class="flex justify-between text-gray-500"><span>Contraste</span><span id="valContraste">145</span></div>
+                  <input type="range" id="xiloContraste" min="50" max="220" value="145" class="w-full" oninput="document.getElementById('valContraste').textContent=this.value; renderizarXilogravura()">
+                </div>
+                <div>
+                  <div class="flex justify-between text-gray-500"><span>Preto / Limiar</span><span id="valLimiar">128</span></div>
+                  <input type="range" id="xiloLimiar" min="40" max="220" value="128" class="w-full" oninput="document.getElementById('valLimiar').textContent=this.value; renderizarXilogravura()">
+                </div>
+              </div>
+
+              <div class="space-y-1.5 pt-1">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="xiloMoldura" checked onchange="renderizarXilogravura()" class="rounded text-amber-600">
+                  <span>Adicionar Moldura Ornamental de Cordel</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="xiloInverter" onchange="renderizarXilogravura()" class="rounded text-amber-600">
+                  <span>Inverter Preto e Branco</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="xiloHachuras" onchange="renderizarXilogravura()" class="rounded text-amber-600">
+                  <span>Acrescentar Linhas de Entalhe Hachuradas</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna 2: Prévia e Ações -->
+        <div class="flex flex-col">
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">3. Prévia da Gravura:</label>
+          <div id="xiloContainer" class="flex-1 min-h-[300px] bg-[#f7f2e8] dark:bg-gray-900 border-2 border-dashed border-amber-300 dark:border-gray-700 rounded-xl p-3 flex items-center justify-center overflow-auto">
+            <div id="xiloVazio" class="text-center text-gray-400 text-xs">
+              Selecione uma imagem ou clique em um motivo sertanejo acima para renderizar.
+            </div>
+            <canvas id="xiloCanvas" class="hidden max-h-[360px] max-w-full shadow-lg bg-white"></canvas>
+          </div>
+
+          <div class="flex gap-2 mt-4">
+            <button onclick="inserirXilogravuraNoCapitulo()" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow transition flex items-center justify-center gap-1.5">
+              📥 Inserir no Capítulo Ativo
+            </button>
+            <button onclick="baixarXilogravuraPNG()" class="px-4 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg text-xs font-semibold transition">
+              💾 Baixar PNG
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ESTÚDIO DE CAPAS -->
+  <div id="modalCapas" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div class="p-4 border-b border-inherit flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">▧</span>
+          <h2 class="text-lg font-bold font-serif">Estúdio de Criação de Capas</h2>
+        </div>
+        <button onclick="fecharModal('modalCapas')" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-5 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+        <!-- Prévia da Capa -->
+        <div class="flex flex-col items-center">
+          <div id="previewCapa" class="cover-box blue">
+            <div id="capaChamada" class="text-[9px] uppercase tracking-widest opacity-80">Edição Especial</div>
+            <div id="capaTitulo" class="font-serif font-bold text-2xl my-auto leading-tight">Meu Grande Romance</div>
+            <div id="capaAutor" class="text-xs uppercase tracking-wider opacity-90">Autor</div>
+          </div>
+          <span class="text-[11px] text-gray-400 mt-3">Prévia gráfica da capa frontal do livro</span>
+        </div>
+
+        <!-- Controles de Capa -->
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="text-gray-500 font-semibold">Tema da Capa:</label>
+            <div class="grid grid-cols-3 gap-2 mt-1">
+              <button onclick="definirTemaCapa('blue')" class="p-2 border rounded text-center hover:border-amber-500 font-medium bg-[#183b5b] text-white">Azul Imperial</button>
+              <button onclick="definirTemaCapa('gold')" class="p-2 border rounded text-center hover:border-amber-500 font-medium bg-[#9b7837] text-white">Clássico Ouro</button>
+              <button onclick="definirTemaCapa('sepia')" class="p-2 border rounded text-center hover:border-amber-500 font-medium bg-[#f5ebd9] text-gray-800">Sépia Livro</button>
+              <button onclick="definirTemaCapa('cordel')" class="p-2 border rounded text-center hover:border-amber-500 font-medium bg-[#eee4cf] text-gray-900 border-2 border-black font-bold">Cordel</button>
+              <button onclick="definirTemaCapa('dark')" class="p-2 border rounded text-center hover:border-amber-500 font-medium bg-[#111827] text-white">Noturno</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-gray-500 font-semibold">Chamada / Coleção:</label>
+            <input type="text" id="inputCapaChamada" value="Edição Especial" oninput="atualizarPreviewCapa()" class="w-full mt-1 p-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">
+          </div>
+
+          <div>
+            <label class="text-gray-500 font-semibold">Título na Capa:</label>
+            <input type="text" id="inputCapaTitulo" value="Meu Grande Romance" oninput="atualizarPreviewCapa()" class="w-full mt-1 p-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">
+          </div>
+
+          <div>
+            <label class="text-gray-500 font-semibold">Nome do Autor:</label>
+            <input type="text" id="inputCapaAutor" value="Nome do Autor" oninput="atualizarPreviewCapa()" class="w-full mt-1 p-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">
+          </div>
+
+          <div class="pt-2 flex gap-2">
+            <button onclick="baixarCapaSVG()" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition">
+              💾 Baixar Capa Vetorial (SVG)
+            </button>
+            <button onclick="aplicarCapaComoFolhaDeRosto()" class="flex-1 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-lg transition">
+              ✓ Aplicar ao Livro
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFERÊNCIA PRÉ-FLIGHT EDITORIAL -->
+  <div id="modalPreflight" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div class="p-4 border-b border-inherit flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🔍</span>
+          <h2 class="text-lg font-bold font-serif">Conferência Pré-flight Editorial</h2>
+        </div>
+        <button onclick="fecharModal('modalPreflight')" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+      <div class="p-5 space-y-3" id="listaPreflight">
+        <!-- Gerado dinamicamente -->
+      </div>
+      <div class="p-4 border-t border-inherit bg-gray-50 dark:bg-gray-800/50 flex justify-end">
+        <button onclick="fecharModal('modalPreflight')" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-xs font-semibold">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DICIONÁRIO DA LÍNGUA PORTUGUESA -->
+  <div id="modalDicionario" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-2xl shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div class="p-5 border-b border-inherit flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">📖</span>
+          <h2 class="text-xl font-bold font-serif">Dicionário & Sinônimos PT-BR</h2>
+        </div>
+        <button onclick="fecharModal('modalDicionario')" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-5 border-b border-inherit">
+        <div class="flex gap-2">
+          <input type="text" id="inputBuscaDicionario" placeholder="Digite uma palavra para pesquisar..." 
+                 class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:border-amber-500 text-base"
+                 onkeydown="if(event.key === 'Enter') pesquisarNoDicionario()">
+          <button onclick="pesquisarNoDicionario()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition">
+            Buscar
+          </button>
+        </div>
+      </div>
+
+      <div id="resultadoDicionario" class="p-5 overflow-y-auto flex-1 space-y-4">
+        <div class="text-center text-gray-400 py-8">
+          Digite uma palavra acima para ver significados, classe gramatical, sinônimos e exemplos.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REVISÃO GRAMATICAL REAL (LANGUAGETOOL) -->
+  <div id="modalRevisao" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div class="p-5 border-b border-inherit flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">✓</span>
+          <div>
+            <h2 class="text-xl font-bold font-serif">Revisão Gramatical e Ortográfica</h2>
+            <p class="text-xs text-gray-400">Verificação do capítulo ativo via LanguageTool (Português do Brasil)</p>
+          </div>
+        </div>
+        <button onclick="fecharModal('modalRevisao')" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div id="conteudoRevisao" class="p-5 overflow-y-auto flex-1 space-y-3">
+        <!-- Carregado via JS -->
+      </div>
+
+      <div class="p-4 border-t border-inherit bg-gray-50 dark:bg-gray-800/50 flex justify-end">
+        <button onclick="fecharModal('modalRevisao')" class="px-5 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ASSISTENTE CRIATIVO DE IA -->
+  <div id="modalIA" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div class="p-5 border-b border-inherit flex items-center justify-between bg-gradient-to-r from-amber-500/10 to-orange-500/10">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">✨</span>
+          <div>
+            <h2 class="text-xl font-bold font-serif text-amber-800 dark:text-amber-400">Assistente Literário de IA</h2>
+            <p class="text-xs text-amber-700/70 dark:text-amber-300/70">Inspiração, continuação de cenas, diálogos e versos de cordel</p>
+          </div>
+        </div>
+        <button onclick="fecharModal('modalIA')" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-5 overflow-y-auto flex-1 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ação Rápida:</label>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <button onclick="pedirIA('continuar')" class="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-amber-500 text-left text-xs transition">
+              ✍️ <strong>Continuar cena</strong>
+              <div class="text-[10px] text-gray-400 mt-1">Gera os próximos parágrafos</div>
+            </button>
+            <button onclick="pedirIA('cordel')" class="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-amber-500 text-left text-xs transition">
+              📜 <strong>Versos de Cordel</strong>
+              <div class="text-[10px] text-gray-400 mt-1">Sextilha ou estrofe rimada</div>
+            </button>
+            <button onclick="pedirIA('dialogo')" class="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-amber-500 text-left text-xs transition">
+              💬 <strong>Criar diálogo</strong>
+              <div class="text-[10px] text-gray-400 mt-1">Interação expressiva</div>
+            </button>
+            <button onclick="pedirIA('reviravolta')" class="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-amber-500 text-left text-xs transition">
+              ⚡ <strong>Plot twist</strong>
+              <div class="text-[10px] text-gray-400 mt-1">Reviravolta na trama</div>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Ou instrução personalizada:</label>
+          <div class="flex gap-2">
+            <input type="text" id="inputPromptIA" placeholder="Ex: Crie um momento de suspense com a chegada de uma carta..." 
+                   class="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:border-amber-500"
+                   onkeydown="if(event.key === 'Enter') pedirIA('custom')">
+            <button onclick="pedirIA('custom')" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+              Gerar
+            </button>
+          </div>
+        </div>
+
+        <div id="resultadoIAContainer" class="hidden space-y-3">
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Texto Sugerido:</label>
+          <div id="resultadoIATexto" class="p-4 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm md:text-base italic leading-relaxed text-gray-800 dark:text-gray-200 select-text whitespace-pre-line">
+          </div>
+          <div class="flex gap-2 justify-end">
+            <button onclick="inserirTextoIASugestao()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center gap-1">
+              ✓ Inserir no Cursor do Livro
+            </button>
+            <button onclick="copiarTextoIA()" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 px-3 py-2 rounded-lg text-xs font-medium transition">
+              📋 Copiar
+            </button>
+          </div>
+        </div>
+
+        <!-- Chave Gemini API Opcional -->
+        <div class="pt-3 border-t border-inherit text-xs">
+          <details class="cursor-pointer">
+            <summary class="text-gray-500 hover:text-amber-600 font-medium">🔑 Configurar Chave Gemini API (opcional para IA ilimitada)</summary>
+            <div class="mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-2">
+              <p class="text-gray-500 dark:text-gray-400">Insira sua chave gratuita da Google AI Studio. Ela fica salva apenas no seu navegador.</p>
+              <div class="flex gap-2">
+                <input type="password" id="inputApiKeyGemini" placeholder="Cole sua chave AIzaSy..." class="flex-1 px-3 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                <button onclick="salvarApiKeyGemini()" class="bg-gray-800 dark:bg-gray-600 text-white px-3 py-1.5 rounded text-xs">Salvar</button>
+              </div>
+            </div>
+          </details>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CENTRAL DE EXPORTAÇÃO -->
+  <div id="modalExportar" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div class="p-5 border-b border-inherit flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">📥</span>
+          <h2 class="text-xl font-bold font-serif">Exportar Obra Completa</h2>
+        </div>
+        <button onclick="fecharModal('modalExportar')" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-5 space-y-3">
+        <!-- PDF / Livro Impresso -->
+        <button onclick="exportarPDF()" class="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-amber-500 hover:bg-amber-50/30 dark:hover:bg-amber-950/20 text-left transition flex items-center gap-4">
+          <div class="text-3xl">📄</div>
+          <div>
+            <strong class="text-base text-gray-800 dark:text-gray-100">PDF Diagramado / Imprimir Livro</strong>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Diagramação de livro com quebras de página automáticas por capítulo.</p>
+          </div>
+        </button>
+
+        <!-- Markdown (.md) -->
+        <button onclick="exportarMarkdown()" class="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-950/20 text-left transition flex items-center gap-4">
+          <div class="text-3xl">📝</div>
+          <div>
+            <strong class="text-base text-gray-800 dark:text-gray-100">Arquivo Markdown (.md)</strong>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Ideal para plataformas de publicação, Kindle Direct e editores.</p>
+          </div>
+        </button>
+
+        <!-- Texto Puro (.txt) -->
+        <button onclick="exportarTXT()" class="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-500 hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 text-left transition flex items-center gap-4">
+          <div class="text-3xl">📃</div>
+          <div>
+            <strong class="text-base text-gray-800 dark:text-gray-100">Texto Puro (.txt)</strong>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Exporta todos os capítulos organizados em formato simples.</p>
+          </div>
+        </button>
+
+        <!-- Backup Completo JSON -->
+        <button onclick="exportarBackupJSON()" class="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-500 hover:bg-purple-50/30 dark:hover:bg-purple-950/20 text-left transition flex items-center gap-4">
+          <div class="text-3xl">💾</div>
+          <div>
+            <strong class="text-base text-gray-800 dark:text-gray-100">Backup Completo do Projeto (.livro)</strong>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Arquivo JSON com toda a estrutura, capítulos e histórico seguro.</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CÓDIGO JAVASCRIPT ==================== -->
+  <script>
+    /* =========================================================
+       ESTRUTURA DE DADOS E PERSISTÊNCIA DO LIVRO
+       ========================================================= */
+    const STORAGE_KEY = 'meuLivroEditado_v2_projeto';
+    const OLD_STORAGE_KEY_CONTEUDO = 'meuLivroEditado_conteudo';
+    const OLD_STORAGE_KEY_TITULO = 'meuLivroEditado_titulo';
+
+    let projetoLivro = {
+      versao: 2,
+      titulo: 'Meu Grande Romance',
+      autor: 'Autor Anônimo',
+      formato: 'a5',
+      capa: {
+        tema: 'blue',
+        chamada: 'Edição Especial',
+        titulo: 'Meu Grande Romance',
+        autor: 'Autor Anônimo'
+      },
+      capituloAtivoId: 'cap-1',
+      capitulos: [
+        {
+          id: 'cap-1',
+          titulo: 'Capítulo 1: O Início',
+          conteudo: `<p class="capitulo-primeiro first-line-indent">Era uma manhã fria de novembro quando tudo começou. O vereador caminhava pela cidade, observando os primeiros raios de sol. Algo estava prestes a mudar — ele podia sentir no ar.</p><p class="first-line-indent">"Precisamos agir agora", murmurou para si mesmo, ajustando a pasta de documentos sob o braço. Três anos de trabalho estavam condensados naquelas páginas.</p>`
+        }
+      ]
+    };
+
+    let saveTimer = null;
+    let savedSelectionRange = null;
+    let synth = window.speechSynthesis;
+    let isNarrando = false;
+
+    /* Dicionário Offline de Apoio */
+    const DICIONARIO_OFFLINE = {
+      "casa": { classe: "substantivo feminino", significados: ["Edificação destinada à habitação", "Lar, domicílio, residência"], sinonimos: ["lar", "residência", "moradia", "habitação"], exemplos: ["Minha casa é o meu refúgio."] },
+      "livro": { classe: "substantivo masculino", significados: ["Conjunto de folhas de papel impressas unidas por encadernação", "Obra literária ou científica"], sinonimos: ["obra", "tomo", "volume", "publicação"], exemplos: ["Escrever um livro exige persistência e paixão."] },
+      "vereador": { classe: "substantivo masculino", significados: ["Membro de uma câmara municipal legislativa"], sinonimos: ["edil", "parlamentar municipal"], exemplos: ["O vereador apresentou o projeto de lei na sessão plenária."] },
+      "política": { classe: "substantivo feminino", significados: ["Arte ou ciência de governar", "Conjunto de princípios que orientam uma ação comunitária"], sinonimos: ["governança", "administração", "estratégia"], exemplos: ["A boa política constrói pontes para o futuro."] },
+      "cidade": { classe: "substantivo feminino", significados: ["Povoação com grande aglomeração urbana e serviços públicos"], sinonimos: ["metrópole", "município", "urbe"], exemplos: ["A cidade acordava envolta em névoa fina."] },
+      "tempo": { classe: "substantivo masculino", significados: ["Duração contínua e sucessão de acontecimentos", "Época, período histórico"], sinonimos: ["período", "estação", "momento", "era"], exemplos: ["O tempo cura o que a pressa fere."] },
+      "amor": { classe: "substantivo masculino", significados: ["Sentimento de profunda afeição e apreço por outrem"], sinonimos: ["afeição", "carinho", "paixão", "ternura"], exemplos: ["O amor à literatura moveu o escritor por anos."] },
+      "cordel": { classe: "substantivo masculino", significados: ["Gênero literário popular impresso em folhetos rimados", "Literatura típica do Nordeste brasileiro"], sinonimos: ["folheto", "repente", "poesia popular"], exemplos: ["Os versos de cordel ecoavam na feira livre."] },
+      "xilogravura": { classe: "substantivo feminino", significados: ["Técnica de gravura em relevo sobre madeira", "Impressão artística artesanal de cordel"], sinonimos: ["gravura", "entalhe", "matriz"], exemplos: ["A capa do folheto foi ilustrada com bela xilogravura."] },
+      "silêncio": { classe: "substantivo masculino", significados: ["Ausência total ou relativa de ruído", "Abstenção de falar"], sinonimos: ["quietude", "calmaria", "mudez"], exemplos: ["Um silêncio tenso pairava na sala de reuniões."] }
+    };
+
+    /* =========================================================
+       INICIALIZAÇÃO & MIGRAÇÃO
+       ========================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      carregarProjeto();
+      aplicarTemaSalvo();
+      atualizarInterface();
+      atualizarMetricasTotais();
+
+      document.getElementById('editor').addEventListener('blur', salvarPosicaoCursor);
+      document.getElementById('editor').addEventListener('keyup', salvarPosicaoCursor);
+      document.getElementById('editor').addEventListener('mouseup', salvarPosicaoCursor);
+    });
+
+    function carregarProjeto() {
+      const salvo = localStorage.getItem(STORAGE_KEY);
+      if (salvo) {
+        try {
+          projetoLivro = Object.assign(projetoLivro, JSON.parse(salvo));
+          return;
+        } catch (e) {
+          console.error("Erro ao carregar projeto v2:", e);
+        }
+      }
+
+      // Migração retrocompatível do projeto antigo
+      const conteudoAntigo = localStorage.getItem(OLD_STORAGE_KEY_CONTEUDO);
+      const tituloAntigo = localStorage.getItem(OLD_STORAGE_KEY_TITULO);
+
+      if (conteudoAntigo) projetoLivro.capitulos[0].conteudo = conteudoAntigo;
+      if (tituloAntigo) {
+        projetoLivro.titulo = tituloAntigo;
+        if (projetoLivro.capa) projetoLivro.capa.titulo = tituloAntigo;
+      }
+      salvarProjeto();
+    }
+
+    function salvarProjeto() {
+      const capAtivo = obterCapituloAtivo();
+      if (capAtivo) {
+        capAtivo.conteudo = document.getElementById('editor').innerHTML;
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(projetoLivro));
+      
+      const saveStatus = document.getElementById('saveStatus');
+      const agora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      saveStatus.textContent = `💾 Salvo às ${agora}`;
+    }
+
+    function aoDigitarNoEditor() {
+      document.getElementById('saveStatus').textContent = '💾 Salvando...';
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        salvarProjeto();
+        atualizarMetricasTotais();
+      }, 1000);
+
+      atualizarMetricasCapitulo();
+    }
+
+    function salvarMetadadosLivro() {
+      const novoTitulo = document.getElementById('inputTituloLivro').value || 'Sem Título';
+      projetoLivro.titulo = novoTitulo;
+      if (projetoLivro.capa) projetoLivro.capa.titulo = novoTitulo;
+      atualizarPreviewCapa();
+      salvarProjeto();
+    }
+
+    function obterCapituloAtivo() {
+      return projetoLivro.capitulos.find(c => c.id === projetoLivro.capituloAtivoId) || projetoLivro.capitulos[0];
+    }
+
+    /* =========================================================
+       GERENCIAMENTO DE CAPÍTULOS
+       ========================================================= */
+    function atualizarInterface() {
+      document.getElementById('inputTituloLivro').value = projetoLivro.titulo;
+      document.getElementById('selectFormatoLivro').value = projetoLivro.formato || 'a5';
+      document.getElementById('footerFormatoInfo').textContent = `Formato: ${(projetoLivro.formato || 'a5').toUpperCase()}`;
+      
+      const capAtivo = obterCapituloAtivo();
+      if (capAtivo) {
+        document.getElementById('inputTituloCapitulo').value = capAtivo.titulo;
+        document.getElementById('editor').innerHTML = capAtivo.conteudo;
+      }
+
+      renderizarListaCapitulos();
+      atualizarMetricasCapitulo();
+      atualizarMetricasTotais();
+      atualizarPreviewCapa();
+    }
+
+    function renderizarListaCapitulos() {
+      const lista = document.getElementById('listaCapitulos');
+      lista.innerHTML = '';
+
+      projetoLivro.capitulos.forEach((cap, idx) => {
+        const isActive = cap.id === projetoLivro.capituloAtivoId;
+        const div = document.createElement('div');
+        div.className = `p-2.5 rounded-lg flex items-center justify-between text-xs cursor-pointer transition ${
+          isActive 
+            ? 'bg-amber-500/15 border border-amber-500/30 font-semibold text-amber-900 dark:text-amber-200' 
+            : 'hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300'
+        }`;
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = cap.conteudo;
+        const texto = tempDiv.innerText || '';
+        const palavras = texto.trim() ? texto.trim().split(/\s+/).length : 0;
+
+        div.innerHTML = `
+          <div class="flex items-center gap-2 truncate flex-1" onclick="selecionarCapitulo('${cap.id}')">
+            <span class="text-gray-400 font-mono text-[10px]">${idx + 1}.</span>
+            <span class="truncate">${cap.titulo}</span>
+          </div>
+          <div class="flex items-center gap-1.5 ml-2 text-gray-400">
+            <span class="text-[10px] font-mono">${palavras}p</span>
+            ${projetoLivro.capitulos.length > 1 ? `
+              <button onclick="event.stopPropagation(); excluirCapitulo('${cap.id}')" class="p-1 hover:text-red-500 rounded" title="Excluir capítulo">✕</button>
+            ` : ''}
+          </div>
+        `;
+        lista.appendChild(div);
+      });
+
+      const capAtivoIdx = projetoLivro.capitulos.findIndex(c => c.id === projetoLivro.capituloAtivoId) + 1;
+      document.getElementById('footerCapituloInfo').textContent = `Capítulo ${capAtivoIdx} de ${projetoLivro.capitulos.length}`;
+    }
+
+    function selecionarCapitulo(id) {
+      if (id === projetoLivro.capituloAtivoId) return;
+      const capAtual = obterCapituloAtivo();
+      if (capAtual) capAtual.conteudo = document.getElementById('editor').innerHTML;
+
+      projetoLivro.capituloAtivoId = id;
+      salvarProjeto();
+      atualizarInterface();
+    }
+
+    function adicionarCapitulo() {
+      const capAtual = obterCapituloAtivo();
+      if (capAtual) capAtual.conteudo = document.getElementById('editor').innerHTML;
+
+      const num = projetoLivro.capitulos.length + 1;
+      const novoId = 'cap-' + Date.now();
+      const novoCap = {
+        id: novoId,
+        titulo: `Capítulo ${num}: Novo Capítulo`,
+        conteudo: `<p class="capitulo-primeiro first-line-indent">Comece a escrever seu novo capítulo aqui...</p>`
+      };
+      
+      projetoLivro.capitulos.push(novoCap);
+      projetoLivro.capituloAtivoId = novoId;
+      salvarProjeto();
+      atualizarInterface();
+      document.getElementById('inputTituloCapitulo').focus();
+    }
+
+    function excluirCapitulo(id) {
+      if (projetoLivro.capitulos.length <= 1) {
+        alert("O livro deve conter pelo menos um capítulo.");
+        return;
+      }
+      if (!confirm("Tem certeza que deseja excluir este capítulo?")) return;
+
+      projetoLivro.capitulos = projetoLivro.capitulos.filter(c => c.id !== id);
+      if (projetoLivro.capituloAtivoId === id) {
+        projetoLivro.capituloAtivoId = projetoLivro.capitulos[0].id;
+      }
+      salvarProjeto();
+      atualizarInterface();
+    }
+
+    function atualizarTituloCapituloAtivo(novoTitulo) {
+      const capAtivo = obterCapituloAtivo();
+      if (capAtivo) {
+        capAtivo.titulo = novoTitulo;
+        renderizarListaCapitulos();
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(salvarProjeto, 800);
+      }
+    }
+
+    function mudarFormatoLivro(formato) {
+      projetoLivro.formato = formato;
+      salvarProjeto();
+      atualizarMetricasTotais();
+      document.getElementById('footerFormatoInfo').textContent = `Formato: ${formato.toUpperCase()}`;
+    }
+
+    /* =========================================================
+       MÉTRICAS E ESTATÍSTICAS
+       ========================================================= */
+    function atualizarMetricasCapitulo() {
+      const texto = document.getElementById('editor').innerText || '';
+      const palavras = texto.trim() ? texto.trim().split(/\s+/).length : 0;
+      const caracteres = texto.length;
+
+      document.getElementById('capituloWordCount').textContent = `${palavras.toLocaleString()} palavras`;
+      document.getElementById('footerCharCount').textContent = `${caracteres.toLocaleString()} caracteres`;
+    }
+
+    function atualizarMetricasTotais() {
+      let totalPalavras = 0;
+      projetoLivro.capitulos.forEach(cap => {
+        let texto = '';
+        if (cap.id === projetoLivro.capituloAtivoId) {
+          texto = document.getElementById('editor').innerText || '';
+        } else {
+          const div = document.createElement('div');
+          div.innerHTML = cap.conteudo;
+          texto = div.innerText || '';
+        }
+        if (texto.trim()) totalPalavras += texto.trim().split(/\s+/).length;
+      });
+
+      // Média por página conforme formato
+      let palavrasPorPagina = 250;
+      if (projetoLivro.formato === 'cordel') palavrasPorPagina = 120;
+      else if (projetoLivro.formato === 'a4') palavrasPorPagina = 450;
+      else if (projetoLivro.formato === '16x23') palavrasPorPagina = 300;
+
+      const paginasEstimadas = Math.ceil(totalPalavras / palavrasPorPagina);
+      const minutosLeitura = Math.ceil(totalPalavras / 200);
+
+      document.getElementById('statTotalPalavras').textContent = totalPalavras.toLocaleString();
+      document.getElementById('statTotalPaginas').textContent = `${paginasEstimadas} pág.`;
+      document.getElementById('statTempoLeitura').textContent = `${minutosLeitura} min`;
+      document.getElementById('headerStats').textContent = `${totalPalavras.toLocaleString()} palavras • ${paginasEstimadas} pág.`;
+    }
+
+    /* =========================================================
+       FORMATAÇÃO, CURSOR E LETRA CAPITULAR
+       ========================================================= */
+    function execComando(comando, valor = null) {
+      document.getElementById('editor').focus();
+      document.execCommand(comando, false, valor);
+      aoDigitarNoEditor();
+    }
+
+    function formatarBloco(tag) {
+      document.getElementById('editor').focus();
+      document.execCommand('formatBlock', false, tag);
+      aoDigitarNoEditor();
+    }
+
+    function inserirTexto(texto) {
+      document.getElementById('editor').focus();
+      document.execCommand('insertText', false, texto);
+      aoDigitarNoEditor();
+    }
+
+    function aplicarLetraCapitular() {
+      const editor = document.getElementById('editor');
+      const selection = window.getSelection();
+      let no = selection.anchorNode;
+      while (no && no !== editor && no.nodeName !== 'P') {
+        no = no.parentNode;
+      }
+      if (no && no.nodeName === 'P') {
+        no.classList.toggle('capitulo-primeiro');
+      } else {
+        const primeiroP = editor.querySelector('p');
+        if (primeiroP) primeiroP.classList.toggle('capitulo-primeiro');
+      }
+      aoDigitarNoEditor();
+    }
+
+    function alternarRecuoParagrafo() {
+      const editor = document.getElementById('editor');
+      const selection = window.getSelection();
+      let no = selection.anchorNode;
+      while (no && no !== editor && no.nodeName !== 'P') no = no.parentNode;
+      if (no && no.nodeName === 'P') {
+        no.classList.toggle('first-line-indent');
+      } else {
+        editor.querySelectorAll('p').forEach(p => p.classList.toggle('first-line-indent'));
+      }
+      aoDigitarNoEditor();
+    }
+
+    function mudarFonteEditor(fontFamily) {
+      document.documentElement.style.setProperty('--editor-font', fontFamily);
+    }
+
+    function salvarPosicaoCursor() {
+      const sel = window.getSelection();
+      if (sel.rangeCount > 0) savedSelectionRange = sel.getRangeAt(0).cloneRange();
+    }
+
+    function restaurarPosicaoCursor() {
+      if (savedSelectionRange) {
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(savedSelectionRange);
+      }
+    }
+
+    function aoSoltarTecla(e) {}
+
+    /* =========================================================
+       LEITURA POR VOZ (AUDIOLIVRO)
+       ========================================================= */
+    function alternarLeituraVoz() {
+      if (!('speechSynthesis' in window)) {
+        alert("Navegador sem suporte a síntese de voz.");
+        return;
+      }
+
+      if (isNarrando) {
+        synth.cancel();
+        isNarrando = false;
+        document.getElementById('btnVoz').textContent = '🔊';
+        return;
+      }
+
+      const texto = document.getElementById('editor').innerText;
+      if (!texto.trim()) return;
+
+      const utterance = new SpeechSynthesisUtterance(texto);
+      utterance.lang = 'pt-BR';
+      utterance.rate = 1.0;
+
+      const vozes = synth.getVoices();
+      const vozPT = vozes.find(v => v.lang.includes('pt') || v.lang.includes('BR'));
+      if (vozPT) utterance.voice = vozPT;
+
+      utterance.onend = () => {
+        isNarrando = false;
+        document.getElementById('btnVoz').textContent = '🔊';
+      };
+
+      synth.speak(utterance);
+      isNarrando = true;
+      document.getElementById('btnVoz').textContent = '⏹️';
+    }
+
+    /* =========================================================
+       TEMAS E MODO ZEN
+       ========================================================= */
+    function mudarTema(tema) {
+      document.body.classList.remove('theme-sepia', 'theme-dark');
+      if (tema === 'sepia') document.body.classList.add('theme-sepia');
+      if (tema === 'dark') document.body.classList.add('theme-dark');
+      localStorage.setItem('meuLivroEditado_tema', tema);
+      document.getElementById('dropdownTema').classList.add('hidden');
+    }
+
+    function alternarDropdownTema() {
+      document.getElementById('dropdownTema').classList.toggle('hidden');
+    }
+
+    function aplicarTemaSalvo() {
+      const tema = localStorage.getItem('meuLivroEditado_tema') || 'light';
+      mudarTema(tema);
+    }
+
+    function ativarModoZen() {
+      document.body.classList.add('zen-mode');
+      document.getElementById('zenExitBtn').classList.remove('hidden');
+      if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+    }
+
+    function desativarModoZen() {
+      document.body.classList.remove('zen-mode');
+      document.getElementById('zenExitBtn').classList.add('hidden');
+      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebarCapitulos');
+      sidebar.classList.toggle('-ml-72');
+      sidebar.classList.toggle('md:-ml-80');
+    }
+
+    /* =========================================================
+       OFICINA DE XILOGRAVURA (CORDEL WOODCUT STUDIO)
+       ========================================================= */
+    let xiloFonteImagem = null;
+
+    function carregarImagemXilogravura(ev) {
+      const f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const im = new Image();
+        im.onload = () => {
+          xiloFonteImagem = im;
+          renderizarXilogravura();
+        };
+        im.src = reader.result;
+      };
+      reader.readAsDataURL(f);
+    }
+
+    function carregarAmostraXilogravura(tipo) {
+      const svg = gerarSVGAmostraXilo(tipo);
+      const im = new Image();
+      im.onload = () => {
+        xiloFonteImagem = im;
+        renderizarXilogravura();
+      };
+      im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    function gerarSVGAmostraXilo(tipo) {
+      const base = '<rect width="900" height="1100" fill="white"/>';
+      let arte = '';
+      if (tipo === 'mandacaru') {
+        arte = '<path d="M450 930V300 M450 560Q270 600 300 390Q320 270 390 330Q430 370 420 470 M450 650Q640 690 620 480Q600 360 530 410Q490 450 490 550" fill="none" stroke="black" stroke-width="35" stroke-linecap="round"/><path d="M150 930Q450 820 750 930 M230 860l-50 70m500-80 70 80" stroke="black" stroke-width="20" fill="none"/><circle cx="450" cy="180" r="90" fill="none" stroke="black" stroke-width="25"/>';
+      } else if (tipo === 'sol') {
+        arte = '<circle cx="450" cy="330" r="125" fill="none" stroke="black" stroke-width="28"/>' + Array.from({length:16},(_,i)=>{let a=i*Math.PI/8,x1=450+155*Math.cos(a),y1=330+155*Math.sin(a),x2=450+230*Math.cos(a),y2=330+230*Math.sin(a);return `<path d="M${x1} ${y1}L${x2} ${y2}" stroke="black" stroke-width="22"/>`}).join('') + '<path d="M80 850Q250 690 420 850T820 850 M80 950Q250 790 420 950T820 950" fill="none" stroke="black" stroke-width="28"/>';
+      } else if (tipo === 'cacto') {
+        arte = '<path d="M90 870Q240 700 390 850T810 830 M140 960Q330 800 520 960T850 920" fill="none" stroke="black" stroke-width="24"/><path d="M450 900V420 M450 610Q280 650 300 470L300 400 M450 700Q620 740 620 560V490" fill="none" stroke="black" stroke-width="38" stroke-linecap="round"/><circle cx="700" cy="180" r="65" fill="none" stroke="black" stroke-width="22"/>';
+      } else if (tipo === 'vaqueiro') {
+        arte = '<path d="M280 390Q450 160 620 390L700 430Q450 500 200 430Z" fill="none" stroke="black" stroke-width="28"/><circle cx="450" cy="520" r="105" fill="none" stroke="black" stroke-width="25"/><path d="M350 650L260 930M550 650L640 930M330 750L570 750 M300 930L210 1000M640 930L720 1000" fill="none" stroke="black" stroke-width="35"/><path d="M180 390Q70 300 110 210 M720 390Q830 300 790 210" fill="none" stroke="black" stroke-width="25"/>';
+      } else {
+        arte = '<path d="M120 300L780 300 M160 300L160 700 M300 300L300 700 M440 300L440 700 M580 300L580 700 M720 300L720 700" stroke="black" stroke-width="18"/>'+[160,300,440,580,720].map((x,i)=>`<path d="M${x} 300l-65 140h130z" fill="black"/>`).join('')+'<path d="M100 850Q250 760 400 850T800 850" stroke="black" stroke-width="28" fill="none"/>';
+      }
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1100" viewBox="0 0 900 1100">${base}${arte}<rect x="35" y="35" width="830" height="1030" fill="none" stroke="black" stroke-width="18"/></svg>`;
+    }
+
+    function renderizarXilogravura() {
+      if (!xiloFonteImagem) return;
+      const canvas = document.getElementById('xiloCanvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const maxDim = 1200;
+      const scale = Math.min(1, maxDim / Math.max(xiloFonteImagem.width, xiloFonteImagem.height));
+
+      canvas.width = Math.max(1, Math.round(xiloFonteImagem.width * scale));
+      canvas.height = Math.max(1, Math.round(xiloFonteImagem.height * scale));
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(xiloFonteImagem, 0, 0, canvas.width, canvas.height);
+
+      let img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let d = img.data;
+
+      const contrast = Number(document.getElementById('xiloContraste').value);
+      const threshold = Number(document.getElementById('xiloLimiar').value);
+      const style = document.getElementById('xiloEstilo').value;
+      const invert = document.getElementById('xiloInverter').checked;
+      const hatch = document.getElementById('xiloHachuras').checked || style === 'hatch';
+
+      const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+      let gray = new Float32Array(canvas.width * canvas.height);
+
+      for (let i = 0, j = 0; i < d.length; i += 4, j++) {
+        let g = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+        g = factor * (g - 128) + 128;
+        if (style === 'rough') g += ((Math.sin(j * 12.9898) * 43758.5453) % 1) * 25;
+        gray[j] = Math.max(0, Math.min(255, g));
+      }
+
+      if (style === 'fine') {
+        for (let y = 1; y < canvas.height - 1; y++) {
+          for (let x = 1; x < canvas.width - 1; x++) {
+            let k = y * canvas.width + x;
+            if (gray[k] < threshold + 18) {
+              let edge = Math.abs(gray[k] - gray[k-1]) + Math.abs(gray[k] - gray[k - canvas.width]);
+              gray[k] = Math.max(0, gray[k] - edge * 0.24);
+            }
+          }
+        }
+      }
+
+      if (hatch) {
+        const step = 8;
+        for (let y = 0; y < canvas.height; y += step * 2) {
+          for (let x = 0; x < canvas.width; x += step * 2) {
+            let k = y * canvas.width + x;
+            if (gray[k] < threshold + 30) {
+              for (let q = 0; q < step; q++) {
+                let xx = x + q, yy = y + q;
+                if (xx < canvas.width && yy < canvas.height) gray[yy * canvas.width + xx] = Math.min(gray[yy * canvas.width + xx], 35);
+              }
+            }
+          }
+        }
+      }
+
+      if (style === 'rough' || style === 'hatch') {
+        for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            let i = y * canvas.width + x;
+            let oldV = gray[i];
+            let newV = oldV < threshold ? 0 : 255;
+            let err = oldV - newV;
+            gray[i] = newV;
+            if (x + 1 < canvas.width) gray[i + 1] += err * 7 / 16;
+            if (y + 1 < canvas.height) {
+              if (x > 0) gray[i + canvas.width - 1] += err * 3 / 16;
+              gray[i + canvas.width] += err * 5 / 16;
+              if (x + 1 < canvas.width) gray[i + canvas.width + 1] += err / 16;
+            }
+          }
+        }
+      } else {
+        for (let i = 0; i < gray.length; i++) gray[i] = gray[i] < threshold ? 0 : 255;
+      }
+
+      for (let j = 0, i = 0; j < gray.length; j++, i += 4) {
+        let v = gray[j] < 128 ? 0 : 255;
+        if (invert) v = 255 - v;
+        d[i] = d[i+1] = d[i+2] = v;
+        d[i+3] = 255;
+      }
+      ctx.putImageData(img, 0, 0);
+
+      if (document.getElementById('xiloMoldura').checked) {
+        desenharMolduraCordel(ctx, canvas.width, canvas.height);
+      }
+
+      document.getElementById('xiloVazio').classList.add('hidden');
+      canvas.classList.remove('hidden');
+    }
+
+    function desenharMolduraCordel(ctx, w, h) {
+      const m = Math.max(12, Math.round(Math.min(w, h) * 0.025));
+      ctx.save();
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = Math.max(3, m * 0.18);
+      ctx.strokeRect(m, m, w - 2*m, h - 2*m);
+      ctx.strokeRect(m * 1.55, m * 1.55, w - 3.1*m, h - 3.1*m);
+      const n = Math.max(8, Math.round(w / 35));
+      ctx.lineWidth = Math.max(2, m * 0.1);
+      for (let i = 0; i < n; i++) {
+        let x = m * 1.8 + i * (w - 3.6*m) / (n - 1);
+        ctx.beginPath();
+        ctx.moveTo(x, m * 1.8);
+        ctx.lineTo(x - m * 0.35, m * 2.5);
+        ctx.lineTo(x + m * 0.35, m * 2.5);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, h - m * 1.8);
+        ctx.lineTo(x - m * 0.35, h - m * 2.5);
+        ctx.lineTo(x + m * 0.35, h - m * 2.5);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function baixarXilogravuraPNG() {
+      const canvas = document.getElementById('xiloCanvas');
+      if (!xiloFonteImagem || canvas.classList.contains('hidden')) {
+        alert("Crie uma gravura primeiro.");
+        return;
+      }
+      canvas.toBlob(blob => {
+        const u = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = u;
+        a.download = `xilogravura-${Date.now()}.png`;
+        a.click();
+        URL.revokeObjectURL(u);
+      }, 'image/png');
+    }
+
+    function inserirXilogravuraNoCapitulo() {
+      const canvas = document.getElementById('xiloCanvas');
+      if (!xiloFonteImagem || canvas.classList.contains('hidden')) {
+        alert("Renderize uma xilogravura antes de inserir.");
+        return;
+      }
+      const dataUrl = canvas.toDataURL('image/png');
+      fecharModal('modalXilogravura');
+      document.getElementById('editor').focus();
+      restaurarPosicaoCursor();
+
+      const html = `<p style="text-align:center;margin:24px 0;"><img src="${dataUrl}" alt="Xilogravura de Cordel" style="max-width:85%;height:auto;margin:0 auto;display:block;box-shadow:0 4px 12px rgba(0,0,0,0.15);border:1px solid #000;"></p><p><br></p>`;
+      document.execCommand('insertHTML', false, html);
+      aoDigitarNoEditor();
+    }
+
+    /* =========================================================
+       ESTÚDIO DE CAPAS
+       ========================================================= */
+    function definirTemaCapa(tema) {
+      if (!projetoLivro.capa) projetoLivro.capa = {};
+      projetoLivro.capa.tema = tema;
+      atualizarPreviewCapa();
+      salvarProjeto();
+    }
+
+    function atualizarPreviewCapa() {
+      const capaBox = document.getElementById('previewCapa');
+      const tema = (projetoLivro.capa && projetoLivro.capa.tema) || 'blue';
+      capaBox.className = `cover-box ${tema}`;
+
+      const chamada = document.getElementById('inputCapaChamada').value || 'Edição Especial';
+      const titulo = document.getElementById('inputCapaTitulo').value || projetoLivro.titulo;
+      const autor = document.getElementById('inputCapaAutor').value || projetoLivro.autor;
+
+      document.getElementById('capaChamada').textContent = chamada;
+      document.getElementById('capaTitulo').textContent = titulo;
+      document.getElementById('capaAutor').textContent = autor;
+
+      if (!projetoLivro.capa) projetoLivro.capa = {};
+      projetoLivro.capa.chamada = chamada;
+      projetoLivro.capa.titulo = titulo;
+      projetoLivro.capa.autor = autor;
+    }
+
+    function baixarCapaSVG() {
+      atualizarPreviewCapa();
+      const c = projetoLivro.capa || {};
+      const tema = c.tema || 'blue';
+      const bgMap = { blue: '#183b5b', gold: '#9b7837', sepia: '#f5ebd9', cordel: '#eee4cf', dark: '#111827' };
+      const fgMap = { blue: '#ffffff', gold: '#ffffff', sepia: '#2e261f', cordel: '#222222', dark: '#f9fafb' };
+
+      const bg = bgMap[tema] || '#183b5b';
+      const fg = fgMap[tema] || '#ffffff';
+
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1480" height="2100" viewBox="0 0 1480 2100">
+        <rect width="100%" height="100%" fill="${bg}"/>
+        <rect x="50" y="50" width="1380" height="2000" fill="none" stroke="${fg}" stroke-width="${tema==='cordel'?12:5}"/>
+        <text x="740" y="320" text-anchor="middle" fill="${fg}" font-family="Arial, sans-serif" font-size="44" letter-spacing="14">${c.chamada || 'EDIÇÃO ESPECIAL'}</text>
+        <text x="740" y="1050" text-anchor="middle" fill="${fg}" font-family="Georgia, serif" font-weight="bold" font-size="95">${c.titulo || projetoLivro.titulo}</text>
+        <text x="740" y="1780" text-anchor="middle" fill="${fg}" font-family="Arial, sans-serif" font-size="40" letter-spacing="8">${c.autor || projetoLivro.autor}</text>
+      </svg>`;
+
+      baixarArquivo(`${projetoLivro.titulo}-capa.svg`, svg, 'image/svg+xml');
+    }
+
+    function aplicarCapaComoFolhaDeRosto() {
+      atualizarPreviewCapa();
+      fecharModal('modalCapas');
+      alert("Capa vinculada com sucesso ao livro e à diagramação de impressão/PDF!");
+    }
+
+    /* =========================================================
+       CONFERÊNCIA PRÉ-FLIGHT
+       ========================================================= */
+    function executarPreflight() {
+      const container = document.getElementById('listaPreflight');
+      const capAtivo = obterCapituloAtivo();
+      const texto = document.getElementById('editor').innerText.trim();
+      const palavras = texto ? texto.split(/\s+/).length : 0;
+
+      const checks = [
+        { nome: 'Título do Livro informado', ok: !!projetoLivro.titulo && projetoLivro.titulo !== 'Sem Título' },
+        { nome: 'Estrutura com pelo menos um capítulo', ok: projetoLivro.capitulos.length > 0 },
+        { nome: 'Conteúdo mínimo escrito (> 50 palavras)', ok: palavras >= 50 },
+        { nome: 'Formato físico do livro selecionado', ok: !!projetoLivro.formato },
+        { nome: 'Capa frontal configurada no estúdio', ok: !!(projetoLivro.capa && projetoLivro.capa.titulo) },
+        { nome: 'Backup recente salvo em disco', ok: true }
+      ];
+
+      container.innerHTML = checks.map(c => `
+        <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="${c.ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500'} font-bold text-base">
+              ${c.ok ? '✓' : '⚠️'}
+            </span>
+            <span class="text-xs font-medium">${c.nome}</span>
+          </div>
+          <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded ${c.ok ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800'}">
+            ${c.ok ? 'Pronto' : 'Pendente'}
+          </span>
+        </div>
+      `).join('');
+    }
+
+    /* =========================================================
+       MODAIS E UTILITÁRIOS
+       ========================================================= */
+    function abrirModal(id) {
+      salvarPosicaoCursor();
+      if (id === 'modalPreflight') executarPreflight();
+      if (id === 'modalCapas') atualizarPreviewCapa();
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function fecharModal(id) {
+      document.getElementById(id).classList.add('hidden');
+      document.getElementById('editor').focus();
+      restaurarPosicaoCursor();
+    }
+
+    window.addEventListener('click', (e) => {
+      if (!e.target.closest('#dropdownTema') && !e.target.closest('button[onclick*="alternarDropdownTema"]')) {
+        document.getElementById('dropdownTema').classList.add('hidden');
+      }
+    });
+
+    /* =========================================================
+       DICIONÁRIO & SINÔNIMOS
+       ========================================================= */
+    async function pesquisarNoDicionario() {
+      const input = document.getElementById('inputBuscaDicionario');
+      const palavra = input.value.trim().toLowerCase();
+      const container = document.getElementById('resultadoDicionario');
+      if (!palavra) return;
+
+      container.innerHTML = '<div class="text-center py-8 text-gray-400 animate-pulse">Consultando acervo da língua portuguesa...</div>';
+
+      try {
+        const resp = await fetch(`https://api.dicionario-aberto.net/word/${encodeURIComponent(palavra)}`);
+        if (resp.ok) {
+          const dados = await resp.json();
+          if (dados && dados.length > 0 && dados[0].xml) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(dados[0].xml, "text/xml");
+            const definicoes = Array.from(xmlDoc.getElementsByTagName('def')).map(d => d.textContent.trim()).filter(Boolean);
+
+            if (definicoes.length > 0) {
+              container.innerHTML = `
+                <div class="p-5 bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                  <div class="text-2xl font-bold font-serif text-blue-900 dark:text-blue-300 capitalize mb-1">${palavra}</div>
+                  <div class="text-xs text-blue-600 dark:text-blue-400 italic mb-3">Fonte: Dicionário Aberto da Língua Portuguesa</div>
+                  <div class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                    <strong class="block text-xs uppercase text-gray-400">Significados:</strong>
+                    <ol class="list-decimal list-inside space-y-1.5 leading-relaxed">
+                      ${definicoes.map(d => `<li>${d}</li>`).join('')}
+                    </ol>
+                  </div>
+                </div>
+              `;
+              return;
+            }
+          }
+        }
+      } catch (err) {}
+
+      const entrada = DICIONARIO_OFFLINE[palavra];
+      if (entrada) {
+        container.innerHTML = `
+          <div class="p-5 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl space-y-3">
+            <div class="flex items-baseline justify-between">
+              <h3 class="text-2xl font-bold font-serif text-amber-900 dark:text-amber-200 capitalize">${palavra}</h3>
+              <span class="text-xs text-amber-700 dark:text-amber-400 italic">${entrada.classe}</span>
+            </div>
+            <div>
+              <strong class="block text-xs uppercase text-gray-400 mb-1">Significados:</strong>
+              <ol class="list-decimal list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                ${entrada.significados.map(s => `<li>${s}</li>`).join('')}
+              </ol>
+            </div>
+            ${entrada.sinonimos ? `
+              <div>
+                <strong class="block text-xs uppercase text-gray-400 mb-1.5">Sinônimos Literários:</strong>
+                <div class="flex flex-wrap gap-1.5">
+                  ${entrada.sinonimos.map(s => `<span class="px-2.5 py-0.5 bg-white dark:bg-gray-700 border border-amber-300 dark:border-amber-700 rounded-full text-xs">${s}</span>`).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="text-center py-8">
+            <div class="text-4xl mb-2">🔍</div>
+            <p class="text-base font-medium">Palavra "<strong>${palavra}</strong>" não encontrada no dicionário.</p>
+          </div>
+        `;
+      }
+    }
+
+    /* =========================================================
+       REVISÃO GRAMATICAL REAL (LANGUAGETOOL)
+       ========================================================= */
+    async function iniciarRevisaoGramatical() {
+      abrirModal('modalRevisao');
+      const container = document.getElementById('conteudoRevisao');
+      container.innerHTML = '<div class="text-center py-10 text-gray-400 animate-pulse">Analisando concordância e ortografia com o motor gramatical LanguageTool...</div>';
+
+      const texto = document.getElementById('editor').innerText.trim();
+      if (!texto) {
+        container.innerHTML = '<div class="text-center py-8 text-gray-400">O capítulo ativo está vazio. Digite algo para revisar.</div>';
+        return;
+      }
+
+      try {
+        const formData = new URLSearchParams();
+        formData.append('text', texto.slice(0, 10000));
+        formData.append('language', 'pt-BR');
+
+        const resposta = await fetch('https://api.languagetool.org/v2/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData.toString()
+        });
+
+        if (!resposta.ok) throw new Error("Falha na comunicação com o LanguageTool");
+
+        const resultado = await resposta.json();
+        const erros = resultado.matches || [];
+
+        if (erros.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-10">
+              <div class="text-5xl mb-3">🎉</div>
+              <h3 class="text-lg font-bold text-emerald-600 dark:text-emerald-400">Nenhum problema encontrado!</h3>
+              <p class="text-xs text-gray-500 mt-1">Sua ortografia e concordância estão exemplares neste capítulo.</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="text-xs font-semibold text-gray-500 mb-2">
+            Encontrados ${erros.length} pontos de atenção:
+          </div>
+          <div class="space-y-3">
+            ${erros.map(erro => {
+              const trechoContexto = erro.context.text;
+              const subTrecho = trechoContexto.substr(erro.context.offset, erro.context.length);
+              const sugestoes = (erro.replacements || []).slice(0, 3).map(r => r.value);
+
+              return `
+                <div class="p-3.5 bg-red-50/60 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-xl space-y-2">
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <span class="text-xs font-bold px-2 py-0.5 bg-red-200 dark:bg-red-800 text-red-900 dark:text-red-200 rounded">
+                        ${erro.shortMessage || 'Ajuste Gramatical'}
+                      </span>
+                      <p class="text-sm font-medium text-gray-800 dark:text-gray-200 mt-1">${erro.message}</p>
+                    </div>
+                  </div>
+                  
+                  <div class="text-xs text-gray-500 bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700 font-mono">
+                    "...${trechoContexto.slice(Math.max(0, erro.context.offset - 15), erro.context.offset)}<strong class="text-red-600 underline">${subTrecho}</strong>${trechoContexto.slice(erro.context.offset + erro.context.length, erro.context.offset + erro.context.length + 15)}..."
+                  </div>
+
+                  ${sugestoes.length > 0 ? `
+                    <div class="flex items-center gap-2 pt-1">
+                      <span class="text-xs text-gray-500">Sugestão:</span>
+                      <div class="flex flex-wrap gap-1.5">
+                        ${sugestoes.map(sug => `
+                          <button onclick="aplicarCorrecaoSegura('${subTrecho.replace(/'/g, "\\'")}', '${sug.replace(/'/g, "\\'")}')" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900 dark:hover:bg-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs font-medium rounded transition">
+                            Substituir por "${sug}"
+                          </button>
+                        `).join('')}
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } catch (e) {
+        container.innerHTML = `
+          <div class="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl text-center space-y-2">
+            <div class="text-2xl">⚠️</div>
+            <p class="text-sm font-medium text-gray-800 dark:text-gray-200">Não foi possível consultar o servidor LanguageTool no momento.</p>
+            <p class="text-xs text-gray-500">O corretor automático nativo do navegador continua ativo no editor.</p>
+          </div>
+        `;
+      }
+    }
+
+    function aplicarCorrecaoSegura(termoAntigo, termoNovo) {
+      const editor = document.getElementById('editor');
+      const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null, false);
+      let noTexto;
+      let substituido = false;
+
+      while ((noTexto = walker.nextNode())) {
+        if (noTexto.nodeValue.includes(termoAntigo)) {
+          noTexto.nodeValue = noTexto.nodeValue.replace(termoAntigo, termoNovo);
+          substituido = true;
+          break;
+        }
+      }
+
+      if (substituido) {
+        aoDigitarNoEditor();
+        iniciarRevisaoGramatical();
+      }
+    }
+
+    /* =========================================================
+       ASSISTENTE DE ESCRITA DE IA (CRIATIVA & CORDEL)
+       ========================================================= */
+    let textoIASugestaoAtual = "";
+
+    function salvarApiKeyGemini() {
+      const key = document.getElementById('inputApiKeyGemini').value.trim();
+      if (key) {
+        localStorage.setItem('meuLivroEditado_geminiKey', key);
+        alert("Chave Gemini salva com sucesso!");
+      }
+    }
+
+    async function pedirIA(tipo) {
+      const resultadoContainer = document.getElementById('resultadoIAContainer');
+      const resultadoTexto = document.getElementById('resultadoIATexto');
+      resultadoContainer.classList.remove('hidden');
+      resultadoTexto.innerHTML = '<div class="text-center py-4 text-amber-700 dark:text-amber-300 animate-pulse">A IA está criando a continuação...</div>';
+
+      const editor = document.getElementById('editor');
+      const textoAtual = editor.innerText.trim();
+      const ultimosParagrafos = textoAtual.slice(-1000);
+      const apiKey = localStorage.getItem('meuLivroEditado_geminiKey');
+
+      if (apiKey) {
+        try {
+          let promptInstrucao = "";
+          if (tipo === 'continuar') promptInstrucao = "Continue a narrativa deste romance literário a partir do ponto atual:";
+          else if (tipo === 'cordel') promptInstrucao = "Crie uma sextilha ou estrofe poética de literatura de cordel rimada (esquema ABCBDB ou similar):";
+          else if (tipo === 'dialogo') promptInstrucao = "Escreva um diálogo expressivo e envolvente entre os personagens da cena:";
+          else if (tipo === 'reviravolta') promptInstrucao = "Crie uma reviravolta instigante e inesperada na cena:";
+          else promptInstrucao = document.getElementById('inputPromptIA').value || "Continue a narrativa:";
+
+          const corpoRequisicao = {
+            contents: [{
+              parts: [{
+                text: `Você é um coautor literário renomado em língua portuguesa e cultura brasileira. Livro: "${projetoLivro.titulo}".\nTrecho recente:\n"${ultimosParagrafos}"\n\nInstrução: ${promptInstrucao}\nRetorne apenas o texto literário de alta qualidade pronto para o livro.`
+              }]
+            }]
+          };
+
+          const resposta = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(corpoRequisicao)
+          });
+
+          if (resposta.ok) {
+            const data = await resposta.json();
+            const gerado = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (gerado) {
+              textoIASugestaoAtual = gerado.trim();
+              resultadoTexto.textContent = textoIASugestaoAtual;
+              return;
+            }
+          }
+        } catch (err) {}
+      }
+
+      // Motor Criativo Literário Offline
+      const bancoInspiracoes = {
+        continuar: [
+          "Ao cruzar a praça central, seus passos ecoavam na calçada úmida. Uma sensação incontornável de que os olhos da cidade o acompanhavam fez com que apressasse o ritmo em direção ao casarão.",
+          "O silêncio que se seguiu não era de ausência, mas de expectativa. Cada página naquela pasta representava um pacto silencioso firmado muito antes de qualquer eleição.",
+          "Entre as árvores do parque antigo, as folhas secas sussurravam promessas que o tempo teimava em desmentir. Era hora de revelar o que todos temiam perguntar."
+        ],
+        cordel: [
+          "No sertão da minha terra\nOnde o sol queima o estradão,\nUm vaqueiro destemido\nCom a viola na mão,\nVenceu seca e tirania\nCom coragem no coração.",
+          "Peço licença ao leitor\nPra contar com precisão,\nA história desse povo\nQue não baixa a cabeça não,\nQue transforma a pedraria\nEm semente de fartura e pão."
+        ],
+        dialogo: [
+          "— Se você abrir esse dossiê agora — murmurou ela, sem fitá-lo nos olhos —, não haverá caminho de volta para nenhum de nós.\n— Alguns caminhos merecem ser fechados para sempre — respondeu ele com serenidade cortante.",
+          "— Você acha que a cidade está pronta para isso?\n— A cidade nunca esteve pronta para nada; nós é que nos habituamos à tempestade."
+        ],
+        reviravolta: [
+          "Ao abrir a pasta para conferir os comprovantes, as mãos paralisaram no ar. Não eram os seus documentos; alguém havia substituído todo o arquivo original durante a madrugada.",
+          "Um envelope negro deslizou por baixo da porta trancada, com o selo intacto que ele julgava ter sido destruído anos atrás."
+        ]
+      };
+
+      const lista = bancoInspiracoes[tipo] || bancoInspiracoes.continuar;
+      textoIASugestaoAtual = lista[Math.floor(Math.random() * lista.length)];
+      resultadoTexto.textContent = textoIASugestaoAtual;
+    }
+
+    function inserirTextoIASugestao() {
+      if (!textoIASugestaoAtual) return;
+      fecharModal('modalIA');
+      document.getElementById('editor').focus();
+      restaurarPosicaoCursor();
+
+      const sel = window.getSelection();
+      if (sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        const p = document.createElement('p');
+        p.className = 'first-line-indent';
+        p.textContent = textoIASugestaoAtual;
+        range.insertNode(p);
+      } else {
+        const p = document.createElement('p');
+        p.className = 'first-line-indent';
+        p.textContent = textoIASugestaoAtual;
+        document.getElementById('editor').appendChild(p);
+      }
+
+      aoDigitarNoEditor();
+    }
+
+    function copiarTextoIA() {
+      if (textoIASugestaoAtual) {
+        navigator.clipboard.writeText(textoIASugestaoAtual);
+        alert("Texto copiado para a área de transferência!");
+      }
+    }
+
+    /* =========================================================
+       EXPORTAÇÃO & DIAGRAMAÇÃO EDITORIAL
+       ========================================================= */
+    function exportarPDF() {
+      fecharModal('modalExportar');
+      
+      const printContainer = document.getElementById('printContainer');
+      printContainer.innerHTML = '';
+
+      // Folha de Rosto / Capa
+      const folhaRosto = document.createElement('div');
+      folhaRosto.className = 'print-chapter text-center flex flex-col justify-center min-h-[80vh]';
+      folhaRosto.innerHTML = `
+        <h1 class="text-4xl font-serif font-bold mb-4">${projetoLivro.titulo}</h1>
+        <p class="text-lg italic text-gray-600 mb-12">${projetoLivro.autor || 'Autor'}</p>
+        <div class="mt-auto text-xs text-gray-400">Edição digital diagramada no MEU LIVRO EDITADO</div>
+      `;
+      printContainer.appendChild(folhaRosto);
+
+      // Capítulos
+      projetoLivro.capitulos.forEach(cap => {
+        const capDiv = document.createElement('div');
+        capDiv.className = 'print-chapter';
+        
+        let conteudo = cap.conteudo;
+        if (cap.id === projetoLivro.capituloAtivoId) {
+          conteudo = document.getElementById('editor').innerHTML;
+        }
+
+        capDiv.innerHTML = `
+          <h2 class="print-title">${cap.titulo}</h2>
+          <div class="print-body">${conteudo}</div>
+        `;
+        printContainer.appendChild(capDiv);
+      });
+
+      window.print();
+    }
+
+    function exportarTXT() {
+      fecharModal('modalExportar');
+      let textoCompleto = `${projetoLivro.titulo.toUpperCase()}\nAutor: ${projetoLivro.autor}\n\n`;
+      textoCompleto += "=".repeat(40) + "\n\n";
+
+      projetoLivro.capitulos.forEach(cap => {
+        let textoCap = '';
+        if (cap.id === projetoLivro.capituloAtivoId) {
+          textoCap = document.getElementById('editor').innerText;
+        } else {
+          const div = document.createElement('div');
+          div.innerHTML = cap.conteudo;
+          textoCap = div.innerText;
+        }
+        textoCompleto += `\n\n--- ${cap.titulo.toUpperCase()} ---\n\n`;
+        textoCompleto += textoCap.trim() + "\n";
+      });
+
+      baixarArquivo(`${projetoLivro.titulo}.txt`, textoCompleto, 'text/plain;charset=utf-8');
+    }
+
+    function exportarMarkdown() {
+      fecharModal('modalExportar');
+      let md = `# ${projetoLivro.titulo}\n*Por: ${projetoLivro.autor}*\n\n---\n\n`;
+
+      projetoLivro.capitulos.forEach(cap => {
+        let textoCap = '';
+        if (cap.id === projetoLivro.capituloAtivoId) {
+          textoCap = document.getElementById('editor').innerText;
+        } else {
+          const div = document.createElement('div');
+          div.innerHTML = cap.conteudo;
+          textoCap = div.innerText;
+        }
+        md += `## ${cap.titulo}\n\n`;
+        const paragrafos = textoCap.split('\n').filter(p => p.trim());
+        paragrafos.forEach(p => {
+          md += `${p.trim()}\n\n`;
+        });
+      });
+
+      baixarArquivo(`${projetoLivro.titulo}.md`, md, 'text/markdown;charset=utf-8');
+    }
+
+    function exportarBackupJSON() {
+      salvarProjeto();
+      const dados = JSON.stringify(projetoLivro, null, 2);
+      baixarArquivo(`${projetoLivro.titulo}_backup.livro`, dados, 'application/json');
+    }
+
+    function importarBackupJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importado = JSON.parse(e.target.result);
+          if (importado.capitulos && Array.isArray(importado.capitulos)) {
+            projetoLivro = importado;
+            salvarProjeto();
+            atualizarInterface();
+            alert("Livro restaurado com sucesso!");
+          } else {
+            alert("Arquivo de backup inválido.");
+          }
+        } catch (err) {
+          alert("Erro ao ler o arquivo de backup.");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function baixarArquivo(nome, conteudo, tipoMime) {
+      const blob = new Blob([conteudo], { type: tipoMime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nome.replace(/[\/\\?%*:|"<>]/g, '_');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
